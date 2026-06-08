@@ -1,0 +1,10 @@
+services:
+  grsai-newapi:
+    build: .
+    image: grsai-newapi:latest
+    container_name: grsai-newapi
+    env_file:
+      - .env
+    ports:
+      - "${SERVER_PORT:-3456}:${SERVER_PORT:-3456}"
+    restart: unless-stopped

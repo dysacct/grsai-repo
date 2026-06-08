@@ -33,28 +33,28 @@ type ImageURL struct {
 }
 
 type ChatCompletionRequest struct {
-	Model       string         `json:"model"`
-	Messages    []ChatMessage  `json:"messages"`
-	Stream      bool           `json:"stream,omitempty"`
-	MaxTokens   int            `json:"max_tokens,omitempty"`
-	Temperature *float64       `json:"temperature,omitempty"`
-	TopP        *float64       `json:"top_p,omitempty"`
-	N           int            `json:"n,omitempty"`
-	Stop        []string       `json:"stop,omitempty"`
-	User        string         `json:"user,omitempty"`
-	Tools       interface{}    `json:"tools,omitempty"`
-	ToolChoice  interface{}    `json:"tool_choice,omitempty"`
+	Model       string        `json:"model"`
+	Messages    []ChatMessage `json:"messages"`
+	Stream      bool          `json:"stream,omitempty"`
+	MaxTokens   int           `json:"max_tokens,omitempty"`
+	Temperature *float64      `json:"temperature,omitempty"`
+	TopP        *float64      `json:"top_p,omitempty"`
+	N           int           `json:"n,omitempty"`
+	Stop        []string      `json:"stop,omitempty"`
+	User        string        `json:"user,omitempty"`
+	Tools       interface{}   `json:"tools,omitempty"`
+	ToolChoice  interface{}   `json:"tool_choice,omitempty"`
 }
 
 // Non-streaming response
 type ChatCompletionResponse struct {
-	ID                string                 `json:"id"`
-	Object            string                 `json:"object"`
-	Created           int64                  `json:"created"`
-	Model             string                 `json:"model"`
-	Choices           []ChatChoice           `json:"choices"`
-	Usage             *Usage                 `json:"usage,omitempty"`
-	SystemFingerprint string                 `json:"system_fingerprint,omitempty"`
+	ID                string       `json:"id"`
+	Object            string       `json:"object"`
+	Created           int64        `json:"created"`
+	Model             string       `json:"model"`
+	Choices           []ChatChoice `json:"choices"`
+	Usage             *Usage       `json:"usage,omitempty"`
+	SystemFingerprint string       `json:"system_fingerprint,omitempty"`
 }
 
 type ChatChoice struct {
@@ -71,13 +71,13 @@ type ChatResponseMessage struct {
 
 // Streaming chunk
 type ChatCompletionChunk struct {
-	ID                string              `json:"id"`
-	Object            string              `json:"object"`
-	Created           int64               `json:"created"`
-	Model             string              `json:"model"`
-	Choices           []ChatChunkChoice   `json:"choices"`
-	Usage             *Usage              `json:"usage,omitempty"`
-	SystemFingerprint string              `json:"system_fingerprint,omitempty"`
+	ID                string            `json:"id"`
+	Object            string            `json:"object"`
+	Created           int64             `json:"created"`
+	Model             string            `json:"model"`
+	Choices           []ChatChunkChoice `json:"choices"`
+	Usage             *Usage            `json:"usage,omitempty"`
+	SystemFingerprint string            `json:"system_fingerprint,omitempty"`
 }
 
 type ChatChunkChoice struct {
@@ -99,10 +99,10 @@ type Usage struct {
 }
 
 type ContentFilterResults struct {
-	Hate      FilterResult `json:"hate"`
-	SelfHarm  FilterResult `json:"self_harm"`
-	Sexual    FilterResult `json:"sexual"`
-	Violence  FilterResult `json:"violence"`
+	Hate      FilterResult    `json:"hate"`
+	SelfHarm  FilterResult    `json:"self_harm"`
+	Sexual    FilterResult    `json:"sexual"`
+	Violence  FilterResult    `json:"violence"`
 	Jailbreak JailbreakResult `json:"jailbreak,omitempty"`
 	Profanity ProfanityResult `json:"profanity,omitempty"`
 }
@@ -112,8 +112,8 @@ type FilterResult struct {
 }
 
 type JailbreakResult struct {
-	Filtered  bool `json:"filtered"`
-	Detected  bool `json:"detected"`
+	Filtered bool `json:"filtered"`
+	Detected bool `json:"detected"`
 }
 
 type ProfanityResult struct {
@@ -130,7 +130,8 @@ type ErrorResponse struct {
 type ErrorDetail struct {
 	Message string `json:"message"`
 	Type    string `json:"type,omitempty"`
-	Code    string `json:"code,omitempty"`
+	Param   string `json:"param,omitempty"`
+	Code    any    `json:"code,omitempty"`
 }
 
 // --- Images API ---
@@ -159,8 +160,8 @@ type ImageEditRequest struct {
 }
 
 type ImageResponse struct {
-	Created int64        `json:"created"`
-	Data    []ImageData  `json:"data"`
+	Created int64       `json:"created"`
+	Data    []ImageData `json:"data"`
 }
 
 type ImageData struct {

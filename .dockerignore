@@ -1,0 +1,12 @@
+.git
+.agents
+.codex
+.env
+*.log
+.tmp/
+
+node_modules
+docs/.vitepress/cache
+docs/.vitepress/dist
+
+newapi

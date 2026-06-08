@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"grsai-newapi-go/grsai"
-	"grsai-newapi-go/model"
 )
 
 type ChatHandler struct {
@@ -17,44 +16,46 @@ type ChatHandler struct {
 func (h *ChatHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		writeError(w, http.StatusBadRequest, "failed to read request body")
+		writeInvalidRequestError(w, "failed to read request body", "")
 		return
 	}
 	defer r.Body.Close()
 
-	var req model.ChatCompletionRequest
+	var req struct {
+		Stream bool `json:"stream,omitempty"`
+	}
 	if err := json.Unmarshal(body, &req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid request: "+err.Error())
+		writeInvalidRequestError(w, "invalid request: "+err.Error(), "")
 		return
 	}
 
 	if req.Stream {
-		h.handleStream(w, r, &req)
+		h.handleStream(w, r, body)
 	} else {
-		h.handleNormal(w, r, &req)
+		h.handleNormal(w, r, body)
 	}
 }
 
-func (h *ChatHandler) handleNormal(w http.ResponseWriter, r *http.Request, req *model.ChatCompletionRequest) {
-	resp, err := h.Client.ChatCompletion(req)
+func (h *ChatHandler) handleNormal(w http.ResponseWriter, r *http.Request, body []byte) {
+	resp, err := h.Client.ChatCompletion(body)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
+		writeErrorFromUpstream(w, err)
 		return
 	}
-	writeJSON(w, http.StatusOK, resp)
+	writeRawJSON(w, http.StatusOK, resp)
 }
 
-func (h *ChatHandler) handleStream(w http.ResponseWriter, r *http.Request, req *model.ChatCompletionRequest) {
-	resp, err := h.Client.ChatCompletionStream(req)
+func (h *ChatHandler) handleStream(w http.ResponseWriter, r *http.Request, body []byte) {
+	resp, err := h.Client.ChatCompletionStream(body)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
+		writeErrorFromUpstream(w, err)
 		return
 	}
 	defer resp.Body.Close()
 
 	flusher, ok := w.(http.Flusher)
 	if !ok {
-		writeError(w, http.StatusInternalServerError, "streaming not supported")
+		writeErrorDetail(w, http.StatusInternalServerError, "streaming not supported", "server_error", "", nil)
 		return
 	}
 

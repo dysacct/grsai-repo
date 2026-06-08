@@ -7,6 +7,7 @@ import (
 	"grsai-newapi-go/config"
 	"grsai-newapi-go/grsai"
 	"grsai-newapi-go/router"
+	"grsai-newapi-go/storage"
 )
 
 func main() {
@@ -17,7 +18,27 @@ func main() {
 	}
 
 	client := grsai.NewClient(cfg.GrSAIBaseURL, cfg.GrSAIAPIKey)
-	handler := router.New(client)
+	var imageStorage *storage.RustFSClient
+	if cfg.ImageStorage.Enabled() {
+		var err error
+		imageStorage, err = storage.NewRustFSClient(storage.RustFSConfig{
+			Endpoint:      cfg.ImageStorage.Endpoint,
+			AccessKey:     cfg.ImageStorage.AccessKey,
+			SecretKey:     cfg.ImageStorage.SecretKey,
+			Bucket:        cfg.ImageStorage.Bucket,
+			Region:        cfg.ImageStorage.Region,
+			Prefix:        cfg.ImageStorage.Prefix,
+			PublicBaseURL: cfg.ImageStorage.PublicBaseURL,
+			MaxBytes:      cfg.ImageStorage.MaxBytes,
+			PublicRead:    cfg.ImageStorage.PublicRead,
+		})
+		if err != nil {
+			log.Fatalf("invalid RustFS image storage config: %v", err)
+		}
+		log.Printf("image storage enabled: %s/%s", cfg.ImageStorage.Endpoint, cfg.ImageStorage.Bucket)
+	}
+
+	handler := router.New(client, cfg.ProxyAPIKey, imageStorage)
 
 	addr := ":" + cfg.ServerPort
 	log.Printf("Starting server on %s", addr)

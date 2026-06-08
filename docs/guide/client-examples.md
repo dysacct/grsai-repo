@@ -22,7 +22,7 @@ const completion = await client.chat.completions.create({
 console.log(completion.choices[0]?.message?.content)
 ```
 
-当前服务不会校验客户端传入的 OpenAI API Key，真正的上游鉴权由服务端环境变量 `GRSAI_API_KEY` 完成。生产环境如果暴露给外部用户，建议在网关或服务内补充访问控制。
+如果未设置 `PROXY_API_KEY`，当前服务不会校验客户端传入的 OpenAI API Key，真正的上游鉴权由服务端环境变量 `GRSAI_API_KEY` 完成。设置 `PROXY_API_KEY` 后，客户端 SDK 的 `apiKey` 应填写同一个值，服务会校验 `Authorization: Bearer ${PROXY_API_KEY}`。
 
 ## Python
 

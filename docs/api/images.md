@@ -2,6 +2,8 @@
 
 图片接口对外保持 OpenAI 风格，对内请求 GRS AI 的绘图接口。绘图结果来自上游 SSE 任务的最终成功事件。
 
+如果配置了 `RUSTFS_ENDPOINT`、`RUSTFS_ACCESS_KEY`、`RUSTFS_SECRET_KEY` 等 RustFS/S3 参数，服务会先下载 GRS AI 返回的图片 URL，并上传到 RustFS，然后把返回给客户端的 `url` 换成 RustFS 对象地址。未配置 RustFS 时，服务会直接返回 GRS AI 原始图片 URL。
+
 ## 文生图
 
 ### `POST /v1/images/generations`
@@ -26,7 +28,9 @@ curl http://localhost:8080/v1/images/generations \
 | `n` | number | 否 | `1` | 当前会发起一次上游绘图任务 |
 | `size` | string | 否 | `1024x1024` | OpenAI 尺寸或 GRS AI 原生尺寸 |
 | `quality` | string | 否 | 无 | 透传给上游 |
-| `response_format` | string | 否 | `url` | 为 `b64_json` 时返回 base64 |
+| `response_format` | string | 否 | `url` | 为 `b64_json` 时返回 base64；只支持 `url` / `b64_json` |
+
+当前图片后端只支持 `n=1`。如果传入 `n` 大于 1，服务会返回 OpenAI 风格的 `invalid_request_error`，避免静默只生成一张图。
 
 ## 图生图
 
@@ -69,3 +73,20 @@ curl http://localhost:8080/v1/images/edits \
 | `1K` / `2K` / `4K` | 原样透传 | 空 |
 
 未知尺寸会原样透传给上游。
+
+## RustFS 转存
+
+启用 RustFS 后，图片响应示例：
+
+```json
+{
+  "created": 1780812905,
+  "data": [
+    {
+      "url": "https://fs.sendi.wang/grsai-images/grsai/2026/06/07/example.png"
+    }
+  ]
+}
+```
+
+`response_format=b64_json` 时，服务仍会先转存到 RustFS，再基于同一份图片字节返回 base64，避免重复下载。

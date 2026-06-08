@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"strings"
 
 	"grsai-newapi-go/model"
@@ -36,14 +35,9 @@ func (c *Client) drawAndWait(path string, req *model.DrawRequest) (*model.DrawSS
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(resp.Body)
-		// Try parsing as grsai error
-		var errResp model.GrSAIError
-		if json.Unmarshal(body, &errResp) == nil && errResp.Code != 0 {
-			return nil, fmt.Errorf("grsai draw error: %s (code=%d)", errResp.Msg, errResp.Code)
-		}
-		return nil, fmt.Errorf("grsai draw error (status %d): %s", resp.StatusCode, string(body))
+		return nil, parseAPIError(resp.StatusCode, body, "grsai draw request failed")
 	}
 
 	// Read SSE stream, collect the last (terminal) event
@@ -66,7 +60,18 @@ func (c *Client) drawAndWait(path string, req *model.DrawRequest) (*model.DrawSS
 		case "succeeded":
 			return &evt, nil
 		case "failed", "error":
-			return nil, fmt.Errorf("grsai generation failed: progress=%d failure_reason=%s error=%s", evt.Progress, evt.FailureReason, evt.Error)
+			message := evt.FailureReason
+			if message == "" {
+				message = evt.Error
+			}
+			if message == "" {
+				message = "grsai image generation failed"
+			}
+			return nil, &APIError{
+				StatusCode: 500,
+				Message:    message,
+				Type:       "server_error",
+			}
 		}
 		// "running" — continue reading
 	}
